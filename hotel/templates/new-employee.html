@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block start %}
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<div class="center">
+  <form class="center-two" method="post" action="/new-employee/">
+    {% csrf_token %}
+    <div class="grp" style="margin-top: 40px;">
+      <div class="input-container">
+        <input type="text" placeholder="FIRST NAME" class="form-control my-input" name="first_name" required>
+      </div>
+    </div>
+    <div class="grp">
+      <div class="input-container">
+        <input type="text" placeholder="MIDDLE NAME" class="form-control my-input" name="middle_name">
+      </div>
+    </div>
+    <div class="grp">
+        <div class="input-container">
+          <input type="text" placeholder="LAST NAME" class="form-control my-input" name="last_name" required>
+        </div>
+    </div>
+    <div style="display: flex; flex-direction: row; color: #8e572b; margin-bottom: 10px;">
+        <label>Type of Employee</label>
+        <input style="margin-left: 10px;" type="radio" name="type" value="Supervisor" checked>
+        <label style="margin-left: 10px;">Supervisor</label>
+        <input style="margin-left: 10px;" type="radio" name="type" value="Employee">
+        <label style="margin-left: 10px;">Employee</label>
+    </div>
+    <div class="grp">
+        <div class="input-container">
+          <input type="text" placeholder="ADDRESS" class="form-control" style="border-color: #8e572b; height: 100px; border-radius: 20px; width: 380px; padding-left: 45px;" name="address" required>
+        </div>
+    </div>
+    <div class="grp">
+        <div class="input-container">
+          <input type="number" max="99999999" min="10000000" placeholder="SSN" class="form-control my-input" name="ssn" required>
+        </div>
+    </div>
+    <div style="display: flex; flex-direction: row; color: #8e572b; font-size: larger;">
+        <label style="margin-right: 60px;">Position</label>
+        <select name="position" id="" style="color: #8e572b; border-color: #8e572b; border-radius: 10px; width: 200px;">
+            <option value="Front Desk" style="color: #8e572b;">Front Desk</option>
+            <option value="Maintainence" style="color: #8e572b;">Maintainence</option>
+            <option value="Housekeeping" style="color: #8e572b;">Housekeeping</option>
+        </select>
+    </div>
+    <div class="grp">
+        <div class="input-container" style="margin-top: 20px;">
+          <input type="number" min="00000000000" max="99999999999" placeholder="PHONE NUMBER" class="form-control my-input" name="phno" required>
+        </div>
+    </div>
+    <div class="grp">
+        <div class="input-container">
+          <input type="email" placeholder="EMAIL" class="form-control my-input" name="email" required>
+        </div>
+    </div>
+    <div class="grp">
+        <div class="input-container">
+          <input type="password" placeholder="PASSWORD" class="form-control my-input" name="password" required>
+        </div>
+    </div>
+    <div class="grp">
+        <div class="input-container">
+          <input type="password" placeholder="RE-TYPE PASSWORD" class="form-control my-input" name="re_password" required>
+        </div>
+    </div>
+    <div style="display: flex; flex-direction: row;">
+        <button class="login-button" style="margin-right: 40px;"><a style="text-decoration: none; color: white;" href="/login/">BACK</a></button>
+        <button type="submit" class="login-button">SUBMIT</button>
+    </div>
+  </form>
+  {% if messages %}
+    {% for message in messages %}
+      <p style="position: fixed; top: 2.5%; left: 27%; color: red; font-family: monospacse;">*{{message}}</p>
+    {% endfor %}
+  {% endif %}
+</div>
+
+<style>
+  .grp {
+    margin-bottom: 15px;
+  }
+  .center {
+    margin-top: 20px;
+    position: absolute;
+    top: 53%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+    background-color: white;
+    height: 730px; 
+    width: 800px;
+    border-radius: 20px;
+    align-items: center;
+  }
+  .center-two {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .profile-icon {
+    margin-top: 20px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+  .my-input {
+    border-radius: 50px;
+    width: 380px;
+    height: 35px;
+    padding-left: 45px;
+    border-color: #8e572b;
+  }
+  .input-container {
+    position: relative;
+  }
+  .input-icon {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+  }
+  .login-button {
+    margin-top: 15px;
+    background-color: #8e572b;
+    width: 140px;
+    height: 35px;
+    border-radius: 20px;
+    color: white;
+  }
+  ::-webkit-input-placeholder {
+    text-align: center;
+  }
+</style>
+
+{% endblock %}

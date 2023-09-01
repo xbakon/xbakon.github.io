@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block start %}
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8">
+      <div id="roomCarousel" class="carousel slide" data-ride="carousel">
+        <ol class="carousel-indicators">
+          {% for image in room.images.all %}
+            <li data-target="#roomCarousel" data-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></li>
+          {% endfor %}
+        </ol>
+        <div class="carousel-inner">
+          {% for image in room.images.all %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+              <img src="{{ image.image.url }}" class="d-block w-100" alt="Room Image" style="height: 550px;">
+            </div>
+          {% endfor %}
+        </div>
+        <a class="carousel-control-prev" onclick="previous()" role="button" data-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </a>
+        <a class="carousel-control-next" onclick="next()" role="button" data-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </a>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="room-info" style="height: 200px;">
+        <h2 class="room-title">{{ room.room_title }}</h2>
+        <p class="room-type">Room Type: {{ room.get_room_type_display }}</p>
+        <p class="room-floor">Floor: {{ room.get_room_floor_display }}</p>
+        <p class="room-price">Price per Night: ${{ room.price_per_night }}</p>
+      </div>
+    </div>
+    <div class="col-md-4" style="position: fixed; top: 50%; left: 61.8%; width: 421px;">
+      <div class="room-info" style="height: 327px;">
+        <p class="room-description">{{ room.room_description }}</p>
+        <form action="/reservation/" method="POST">
+          {% csrf_token %}
+          <input type="hidden" value="{{room.id}}" name="id"/>
+          <button type="submit" class="btn" style="position: fixed; top: 80%; width: 357px; font-family: monospace; color: white; background-color: rgb(50, 49, 49); font-size: 19px; border-radius: 10px;">MAKE RESERVATION</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .container {
+    margin-top: 30px;
+    background-color: beige;
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  #roomCarousel img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .room-info {
+    background-color: white;
+    color: black;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: monospace;
+  }
+
+  .room-title {
+    font-size: 30px;
+    margin-bottom: 10px;
+  }
+
+  .room-description {
+    margin-bottom: 15px;
+    font-size: 17px;
+  }
+
+  .room-type, .room-floor, .room-price {
+    font-size: 17px;
+    margin-bottom: 5px;
+  }
+</style>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('#roomCarousel').carousel();
+
+    setTimeout(function() {
+      $('#roomCarousel').carousel('next');
+      console.log("hello")
+    }, 2000);
+  });
+
+  function previous() {
+    console.log("previous");
+    $('#roomCarousel').carousel('prev');
+  }
+  
+  function next() {
+    console.log("next");
+    $('#roomCarousel').carousel('next');
+  }
+</script>
+
+{% endblock %}

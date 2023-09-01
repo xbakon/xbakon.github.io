@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block start %}
+
+
+{% if username %}
+<div style="font-size: x-large; margin-top: 20px; display: flex; flex-direction: column; align-items: center; font-family: monospace; color: white;">
+  Your username is: {{username}}
+</div>
+{% endif %}
+
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<div class="center">
+  <form class="center-two" action="/login/" method="post">
+    {% csrf_token %}
+    <img src="/media/profile_icon.webp" alt="Profile Icon" class="profile-icon">
+    {% if messages %}
+    {% for message in messages %}
+      <p style="position: fixed; top: 30%; left: 28%; color: red; font-family: monospace;">*{{message}}</p>
+    {% endfor %}
+    {% endif %}
+    <div class="grp" style="margin-top: 10px;">
+      <div class="input-container">
+        <i class="fas fa-user input-icon" style="color: #8e572b"></i>
+        <input type="text" placeholder="USERNAME" class="form-control my-input" required name="username">
+      </div>
+    </div>
+    <div class="grp">
+      <div class="input-container">
+        <i class="fas fa-lock input-icon" style="color: #8e572b;"></i>
+        <input type="password" placeholder="PASSWORD" class="form-control my-input" required name="password">
+      </div>
+    </div>
+    <a href="/forgot-password/" class="forgot-password" style="text-decoration: none; color: #8e572b; margin-top: -10px; margin-left: 240px;">Forgot Password?</a>
+    <button type="submit" class="login-button">LOGIN</button>
+    <button type="submit" class="login-button" style="margin-left: 550px; margin-top: 50px;"><a style="text-decoration: none; color: white;" href="/new-employee/">NEW EMPLOYEE</a></button>
+  </form>
+</div>
+
+<style>
+  .grp {
+    margin-bottom: 15px;
+  }
+  .center {
+    position: absolute;
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+    background-color: white;
+    height: 480px; 
+    width: 800px;
+    border-radius: 20px;
+    align-items: center;
+  }
+  .center-two {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .profile-icon {
+    margin-top: 20px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+  .my-input {
+    border-radius: 50px;
+    width: 380px;
+    height: 50px;
+    padding-left: 45px;
+  }
+  .input-container {
+    position: relative;
+  }
+  .input-icon {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+  }
+  .login-button {
+    margin-top: 15px;
+    background-color: #8e572b;
+    width: 140px;
+    height: 35px;
+    border-radius: 20px;
+    color: white;
+  }
+  ::-webkit-input-placeholder {
+    text-align: center;
+  }
+</style>
+
+{% endblock %}
