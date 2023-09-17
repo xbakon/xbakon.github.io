@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block start %}
+
+{% if message %}
+<div id="messages" style="font-size: x-large; margin-top: 40px; display: flex; flex-direction: column; align-items: center; font-family: monospace; color: white;">
+  {{message}}
+</div>
+{% endif %}
+
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<div class="center">
+  <form class="center-two" action="/search/" method="post">
+    {% csrf_token %}
+    <div class="input-container">
+        <i class="fas fa-ticket-alt input-icon" style="color: #8e572b"></i>
+        <input type="number" placeholder="ENTER RESERVATION NUMBER" class="form-control my-input" required name="reservation_number">
+    </div>
+    <button type="submit" class="login-button">LOOKUP RESERVATION</button>
+  </form>
+</div>
+
+<style>
+  .center {
+    position: absolute;
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+    background-color: white;
+    height: 400px; 
+    width: 750px;
+    border-radius: 20px;
+    align-items: center;
+  }
+  .center-two {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .profile-icon {
+    margin-top: 20px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+  }
+  .my-input {
+    border-radius: 50px;
+    width: 380px;
+    height: 50px;
+    padding-left: 45px;
+  }
+  .input-container {
+    position: relative;
+    margin-top: 120px;
+    margin-bottom: 15px;
+  }
+  .input-icon {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+  }
+  .login-button {
+    margin-top: 15px;
+    background-color: #8e572b;
+    width: 220px;
+    height: 40px;
+    border-radius: 20px;
+    color: white;
+  }
+  ::-webkit-input-placeholder {
+    text-align: center;
+  }
+</style>
+
+<script>
+    window.onload = function() {
+        setInterval(function() {
+            document.getElementById("messages").textContent = ""
+        }, 3000);
+    }
+</script>
+
+{% endblock %}

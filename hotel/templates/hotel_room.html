@@ -26,15 +26,12 @@
       </div>
     </div>
     <div class="col-md-4">
-      <div class="room-info" style="height: 200px;">
+      <div class="room-info" style="height: 545px;">
         <h2 class="room-title">{{ room.room_title }}</h2>
         <p class="room-type">Room Type: {{ room.get_room_type_display }}</p>
         <p class="room-floor">Floor: {{ room.get_room_floor_display }}</p>
         <p class="room-price">Price per Night: ${{ room.price_per_night }}</p>
-      </div>
-    </div>
-    <div class="col-md-4" style="position: fixed; top: 50%; left: 61.8%; width: 421px;">
-      <div class="room-info" style="height: 327px;">
+        <p style="margin-top: 20px; font-size: 25px;">Description</p>
         <p class="room-description">{{ room.room_description }}</p>
         <form action="/reservation/" method="POST">
           {% csrf_token %}
@@ -77,6 +74,7 @@
 
   .room-description {
     margin-bottom: 15px;
+    margin-top: -10px;
     font-size: 17px;
   }
 

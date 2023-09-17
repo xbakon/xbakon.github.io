@@ -2,6 +2,9 @@ from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+from django.db.models import Q
 
 # Create your models here.
 
@@ -49,8 +52,46 @@ class Rooms(models.Model):
     price_per_night = models.IntegerField()
 
     def __str__(self) -> str:
-        return self.room_name
+        room_str = self.room_name + " (" + self.room_type + ")"
+        return room_str
 
 class RoomImage(models.Model):
     room = models.ForeignKey(Rooms, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField()
+
+class Client(models.Model):
+    client_first_name = models.CharField(max_length=100)
+    client_last_name = models.CharField(max_length=100)
+    client_dob = models.DateField()
+    client_phno = models.IntegerField()
+    client_email = models.EmailField(unique=True)
+
+    def __str__(self) -> str:
+        return self.client_email
+
+class Reservation(models.Model):
+    reservation_number = models.PositiveIntegerField(unique=True)
+    ZERO = 0
+    ONE = 1
+    TWO = 2
+    THREE = 3
+    room = models.ForeignKey(Rooms, related_name='reservation', on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, related_name='client_reservation', on_delete=models.CASCADE)
+    no_of_childrens = models.IntegerField(choices=[(ZERO, 0), (ONE, 1), (TWO, 2)])
+    no_of_adults = models.IntegerField(choices=[(ONE, 1), (TWO, 2), (THREE, 3)])
+    check_in = models.DateField()
+    check_out = models.DateField()
+
+    def __str__(self) -> str:
+        return self.room.room_name
+
+class Address(models.Model):
+    client = models.ForeignKey(Client, related_name='address', on_delete=models.CASCADE)
+    street = models.CharField(max_length=150)
+    apt = models.IntegerField(null=True,blank=True)
+    city = models.CharField(max_length=50)
+    state = models.CharField(max_length=50)
+    zip_code = models.IntegerField()
+
+    def __str__(self) -> str:
+        return self.client.client_email
