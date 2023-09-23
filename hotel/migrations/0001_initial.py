@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('last_name', models.CharField(max_length=100)),
                 ('type_of_employee', models.CharField(choices=[('Supervisor', 'Supervisor'), ('Employee', 'Employee')], max_length=50)),
                 ('addrress', models.CharField(max_length=250)),
-                ('ssn', models.IntegerField(validators=[django.core.validators.MaxValueValidator(99999999), django.core.validators.MinValueValidator(10000000)])),
+                ('ssn', models.IntegerField(validators=[django.core.validators.MaxValueValidator(999999999), django.core.validators.MinValueValidator(100000000)])),
                 ('supervisor_code', models.IntegerField(unique=True, validators=[django.core.validators.MaxValueValidator(9999), django.core.validators.MinValueValidator(1000)])),
                 ('phno', models.CharField(max_length=11)),
                 ('email', models.EmailField(max_length=254, unique=True)),
