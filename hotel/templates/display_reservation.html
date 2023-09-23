@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block start %}
+
+
+{% if username %}
+<div style="font-size: x-large; margin-top: 20px; display: flex; flex-direction: column; align-items: center; font-family: monospace; color: white;">
+  Your username is: {{username}}
+</div>
+{% endif %}
+
+
+<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<div class="center">
+    <div class="left">
+        <h2 style="margin-top: 20px;">Reservation Details</h2>
+        <div style="font-size: 19px; margin-top: 20px; display: flex; flex-direction: column; align-items: center;">
+            <p>Reservation Number: {{reservation.reservation_number}}</p>
+            <p>No. of Childrens: {{reservation.no_of_childrens}}</p>
+            <p>No. of Adults: {{reservation.no_of_adults}}</p>
+            <p>Check In: {{reservation.check_in}}</p>
+            <p>Check Out: {{reservation.check_out}}</p>
+            <form action="/search/">
+                <button type="submit" class="login-button">VIEW ANOTHER RESERVATION</button>
+            </form>
+        </div>
+    </div>
+    <div style="display: flex; flex-direction: columns; width: 50%;">
+        <div class="right">
+            <h2 style="margin-top: 20px; margin-bottom: 20px;">Client Details</h2>
+            <p>Name: {{reservation.client.client_first_name}} {{reservation.client.client_last_name}}</p>
+            <p>Email: {{reservation.client.client_email}}</p>
+            <p>Phone: {{reservation.client.client_phno}}</p>
+            <h2 style="margin-bottom: 20px; margin-top: 10px;">Room Details</h2>
+            <p>Name: {{reservation.room.room_name}}</p>
+            <p>Title: {{reservation.room.room_title}}</p>
+            <p>Type: {{reservation.room.room_type}}</p>
+            <p>Price: ${{reservation.room.price_per_night}}</p>
+        </div>
+    </div>
+</div>
+
+<style>
+  .login-button {
+    background-color: #8e572b;
+    width: 290px;
+    height: 45px;
+    border-radius: 20px;
+    color: white;
+  }
+  .grp {
+    margin-bottom: 15px;
+  }
+  p {
+    margin-bottom: 30px;
+  }
+  .right p {
+    margin-bottom: 15px;
+  }
+  .center { 
+    position: absolute;
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px;
+    background-color: beige;
+    height: 530px; 
+    width: 800px;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+  }
+  .left {
+    margin-top: 30px;
+    margin-left: 20px;
+    width: 48%;
+    height: 90%;
+    background-color: white;
+    border-radius: 20px;
+    color: rgb(56, 51, 51);
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .right {
+    margin-top: 30px;
+    margin-left: 20px;
+    margin-right: 20px;
+    width: 90%;
+    height: 90%;
+    background-color: white;
+    border-radius: 20px;
+    color: rgb(56, 51, 51);
+    font-family: monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+</style>
+
+{% endblock %}

@@ -10,12 +10,79 @@ from .utils import send_email
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
+import random
+from datetime import datetime
+import re
+from dateutil import parser
+from datetime import timedelta
+from django.db.models import Q
 
 # Create your views here.
 
 @login_required(login_url='/login/')
 def home(request):
-    return render(request, "home.html")
+    if request.GET.get('end_date'):
+        start_date = request.GET.get('end_date')
+        start_date = datetime.strptime(start_date, "%d-%m-%y")
+        start_date = start_date + timedelta(days=1)
+        page_number = int(request.GET.get('page_number'))
+        page_number = page_number + 1
+    elif request.GET.get('start_date'):
+        start_date = request.GET.get('start_date')
+        start_date = datetime.strptime(start_date, "%d-%m-%y")
+        start_date = start_date - timedelta(days=5)
+        page_number = int(request.GET.get('page_number'))
+        page_number = page_number - 1
+    else:
+        start_date = timezone.now().date()
+        page_number = 1
+
+    selected_room_type = request.GET.get('room_type', 'THE ROYAL')
+    end_date = start_date + timedelta(days=5)
+    rooms = Rooms.objects.filter(room_type=selected_room_type)
+
+    reservations = Reservation.objects.filter(
+        room__room_type=selected_room_type,
+        check_in__gte=start_date,
+        check_in__lte=end_date,
+    ).order_by('room__room_name', 'check_in')
+
+    if reservations.exists():
+        for reservation in reservations:
+            print("Room Name: ", reservation.room.room_name)
+            print("Check In: ", reservation.check_in)
+            print("Check Out: ", reservation.check_out)
+            print("-----------------------------")
+    print(selected_room_type)
+
+    room_types = Rooms.objects.values_list('room_type', flat=True).distinct()
+    dates = []
+    str_dates = []
+    for i in range(5):
+        date = start_date + timedelta(days=i)
+        str_date = date.strftime("%d-%m-%y")
+        str_date = str(str_date)
+        str_dates.append(str_date)
+        date = date.strftime("%Y-%m-%d")
+        date = datetime.strptime(date, "%Y-%m-%d").date()
+        dates.append(date)
+        
+    context = {
+        'selected_room_type': selected_room_type,
+        'room_types': room_types,
+        'reservations': reservations,
+        'start_date': start_date,
+        'end_date': end_date,
+        'rooms': rooms,
+        'dates': dates,
+        'str_dates': str_dates,
+        'my_end_date': str_dates[-1],
+        'my_start_date': str_dates[0],
+        'page_number': page_number
+    }
+
+    return render(request, 'home.html', context)
 
 def login_page(request):
     if request.method == 'POST':
@@ -154,6 +221,7 @@ def hotel_room(request, roomId):
     images = RoomImage.objects.filter(room=room)
     return render(request, "hotel_room.html", {'roomId': roomId, 'room': room})
 
+@login_required(login_url='/login/')
 def reservation(request):
     if request.method == 'POST':
         data = request.POST
@@ -182,3 +250,212 @@ def get_id(request):
             return JsonResponse(response_data)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+
+def lookup_email(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            client_email = data.get('client_email')
+            print(client_email)
+            client = Client.objects.filter(client_email=client_email)
+
+            if not client.exists():
+                response_data = {
+                    'error': '*email not found!'
+                }
+            else:
+                client = client[0]
+                address = Address.objects.filter(client=client)
+                address = address[0]
+                response_data = {
+                    'first_name': client.client_first_name,
+                    'last_name': client.client_last_name,
+                    'dob': client.client_dob,
+                    'phno': client.client_phno,
+                    'street': address.street,
+                    'apt': address.apt,
+                    'city': address.city,
+                    'state': address.state,
+                    'zip_code': address.zip_code
+                }
+
+            return JsonResponse(response_data)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+
+@login_required(login_url='/login/')
+def make_resrvation(request):
+    if request.method == 'POST':
+        data = request.POST
+        room_name = data['rooms']
+        print(room_name)
+        check_in = datetime.strptime(data['check_in'], '%Y-%m-%d').date()
+        check_out = datetime.strptime(data['check_out'], '%Y-%m-%d').date()
+        print(check_in)
+        print(check_out)
+
+        overlapping_reservations = Reservation.objects.filter(
+            Q(check_in__lte=check_in, check_out__gte=check_in) |
+            Q(check_in__lte=check_out, check_out__gte=check_out) |
+            Q(check_in__gte=check_in, check_out__lte=check_out),
+            room__room_name=room_name
+        )
+
+        if overlapping_reservations.exists():
+            selected_id = None
+            rooms = Rooms.objects.all()
+            return render(request, "reservation.html", {'selected_id': selected_id, 'rooms': rooms, 'message': '*Reservation conflicts with existing reservations!', 'key': 0}) 
+        else:
+            email = data['email']
+            client = Client.objects.filter(client_email=email)
+            reservation_number = random.randint(10000000, 99999999)
+
+            while Reservation.objects.filter(reservation_number=reservation_number).exists():
+                reservation_number = random.randint(10000000, 99999999)
+
+            if client.exists():
+                reservation = Reservation.objects.create(
+                    room=Rooms.objects.get(room_name=room_name),
+                    client=client[0],
+                    no_of_childrens=data['childs'],
+                    no_of_adults=data['adults'],
+                    check_in=check_in,
+                    check_out=check_out,
+                    reservation_number=reservation_number
+                )
+                reservation.save()
+            else:
+                dob = timezone.make_aware(timezone.datetime.strptime(data['dob'], "%Y-%m-%d"))
+                client = Client.objects.create(
+                    client_first_name=data['first_name'],
+                    client_last_name=data['last_name'],
+                    client_dob=dob,
+                    client_phno=data['phno'],
+                    client_email=email
+                )
+                client.save()
+
+                if data['apt'] == "":
+                    apt = None
+                else:
+                    apt = int(data['apt'])
+
+                address = Address.objects.create(
+                    client=client,
+                    street=data['street'],
+                    apt=apt,
+                    city=data['city'],
+                    state=data['state'],
+                    zip_code=data['zip_code']
+                )
+                address.save()
+
+                reservation = Reservation.objects.create(
+                    room=Rooms.objects.get(room_name=room_name),
+                    client=client,
+                    no_of_childrens=data['childs'],
+                    no_of_adults=data['adults'],
+                    check_in=check_in_date,
+                    check_out=check_out_date,
+                    reservation_number=reservation_number
+                )
+                reservation.save()
+
+            selected_id = None
+            rooms = Rooms.objects.all()
+            return render(request, "reservation.html", {'selected_id': selected_id, 'rooms': rooms, 'message': '*Reservation created successfuly!', 'key': 1, 'reservation_number': reservation_number})
+
+    return redirect('/reservation/')
+
+def search(request):
+    if request.method == 'POST':
+        data = request.POST
+        reservation_number = data['reservation_number']
+
+        if len(str(reservation_number)) < 8 or len(str(reservation_number)) > 8:
+            return render(request, "search.html", {'message': 'reservation number must have exactly 8 digits'})
+        reservation = Reservation.objects.filter(reservation_number=reservation_number)
+
+        if not reservation.exists():
+            return render(request, "search.html", {'message': 'reservation not found'})
+        reservation = reservation[0]
+
+        return redirect('/display-reservation/' + str(reservation.reservation_number))
+
+    else:
+        return render(request, "search.html")
+
+@login_required(login_url='/login/')
+def edit_reservation(request):
+    if request.method == 'POST':
+        data = request.POST
+        reservation_number = data['reservation_number']
+
+        if len(str(reservation_number)) < 8 or len(str(reservation_number)) > 8:
+            return render(request, "search.html", {'message': 'reservation number must have exactly 8 digits'})
+        reservation = Reservation.objects.filter(reservation_number=reservation_number)
+
+        if not reservation.exists():
+            return render(request, "search.html", {'message': 'reservation not found'})
+        reservation = reservation[0]
+        client = Client.objects.filter(id=reservation.client.id)
+        room = Rooms.objects.filter(id=reservation.room.id)
+        client = client[0]
+        my_room = room[0]
+        address = Address.objects.filter(client=client)
+        address = address[0]
+        rooms = Rooms.objects.all()
+
+        return render(request, "edit_reservation.html", {'reservation': reservation, 'rooms': rooms, 'client': client, 'address': address, 'selected_id': my_room.id})
+
+    return render(request, "edit.html")
+
+@login_required(login_url='/login/')
+def edit(request):
+    if request.method == 'POST':
+        data = request.POST
+        room_name = data['rooms']
+
+        check_in = data['check_in']
+        check_out = data['check_out']
+
+        check_in = parser.parse(check_in)
+        check_in = check_in.strftime("%Y-%m-%d")
+        check_out = parser.parse(check_out)
+        check_out = check_out.strftime("%Y-%m-%d")
+
+        if check_out <= check_in:
+            return render(request, "edit.html", {'message': 'check-out date cannot be less than or equal to check-in'})
+        check_in_date = timezone.make_aware(timezone.datetime.strptime(check_in, "%Y-%m-%d"))
+        check_out_date = timezone.make_aware(timezone.datetime.strptime(check_out, "%Y-%m-%d"))
+
+        overlapping_reservations = Reservation.objects.filter(
+            Q(check_in__lte=check_in, check_out__gte=check_in) |
+            Q(check_in__lte=check_out, check_out__gte=check_out) |
+            Q(check_in__gte=check_in, check_out__lte=check_out),
+            room__room_name=room_name
+        ).exclude(id=data['reservation_id'])
+
+        if overlapping_reservations.exists():
+            message = 'conflict in date for reservation number: ' + data['reservation_number']
+            return render(request, "edit.html", {'message': message})
+
+        reservation = Reservation.objects.filter(reservation_number=data['reservation_number'])
+        reservation = reservation[0]
+        reservation.check_in = check_in_date
+        reservation.check_out = check_out_date
+        reservation.no_of_adults = data['adults']
+        reservation.no_of_childrens = data['childs']
+        reservation.room = Rooms.objects.get(room_name=room_name)
+        reservation.save()
+
+        message = 'details updated for reservation number: ' + data['reservation_number']
+        return render(request, "edit.html", {'message': message})
+
+    return render(request, "edit.html")
+
+def display_reservation(request, reservation_number):
+    print(reservation_number)
+    reservation = Reservation.objects.get(reservation_number=reservation_number)
+    return render(request, "display_reservation.html", {'reservation': reservation})

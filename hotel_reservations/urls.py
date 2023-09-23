@@ -19,9 +19,16 @@ urlpatterns = [
     path('hotel-room/<roomId>', hotel_room, name="hotel_room"),
     path('reservation/', reservation, name="reservation"),
     path('get-id/', get_id, name="get_id"),
+    path('lookup-email/', lookup_email, name="lookup_email"),
+    path('make-reservation/', make_resrvation, name="make_resrvation"),
+    path('search/', search, name="search"),
+    path('edit-reservation/', edit_reservation, name="edit_reservation"),
+    path('edit/', edit, name="edit"),
+    path('display-reservation/<reservation_number>', display_reservation, name="display_reservation"),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += staticfiles_urlpatterns()
+
