@@ -4,10 +4,10 @@
 <div class="container">
   <div class="row">
     <div class="col-md-8">
-      <div id="roomCarousel" class="carousel slide" data-ride="carousel">
+      <div id="roomCarousel" class="carousel slide" data-bs-ride="carousel">
         <ol class="carousel-indicators">
           {% for image in room.images.all %}
-            <li data-target="#roomCarousel" data-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></li>
+            <li data-bs-target="#roomCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></li>
           {% endfor %}
         </ol>
         <div class="carousel-inner">
@@ -17,12 +17,14 @@
             </div>
           {% endfor %}
         </div>
-        <a class="carousel-control-prev" onclick="previous()" role="button" data-slide="prev">
+        <button class="carousel-control-prev" type="button" data-bs-target="#roomCarousel" data-bs-slide="prev">
           <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        </a>
-        <a class="carousel-control-next" onclick="next()" role="button" data-slide="next">
+          <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#roomCarousel" data-bs-slide="next">
           <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        </a>
+          <span class="visually-hidden">Next</span>
+        </button>
       </div>
     </div>
     <div class="col-md-4">
@@ -84,27 +86,7 @@
   }
 </style>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  $(document).ready(function() {
-    $('#roomCarousel').carousel();
-
-    setTimeout(function() {
-      $('#roomCarousel').carousel('next');
-      console.log("hello")
-    }, 2000);
-  });
-
-  function previous() {
-    console.log("previous");
-    $('#roomCarousel').carousel('prev');
-  }
-  
-  function next() {
-    console.log("next");
-    $('#roomCarousel').carousel('next');
-  }
-</script>
+<!-- Remove jQuery and use Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
 {% endblock %}

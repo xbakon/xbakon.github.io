@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from .utils import send_email
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
@@ -17,6 +17,11 @@ import re
 from dateutil import parser
 from datetime import timedelta
 from django.db.models import Q
+from django.views import View
+import stripe
+from django.conf import settings
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # Create your views here.
 
@@ -47,14 +52,6 @@ def home(request):
         check_in__gte=start_date,
         check_in__lte=end_date,
     ).order_by('room__room_name', 'check_in')
-
-    if reservations.exists():
-        for reservation in reservations:
-            print("Room Name: ", reservation.room.room_name)
-            print("Check In: ", reservation.check_in)
-            print("Check Out: ", reservation.check_out)
-            print("-----------------------------")
-    print(selected_room_type)
 
     room_types = Rooms.objects.values_list('room_type', flat=True).distinct()
     dates = []
@@ -219,7 +216,10 @@ def rooms(request):
 def hotel_room(request, roomId):
     room = Rooms.objects.get(id=roomId)
     images = RoomImage.objects.filter(room=room)
-    return render(request, "hotel_room.html", {'roomId': roomId, 'room': room})
+
+    for image in images:
+        print(image.image)
+    return render(request, "hotel_room.html", {'roomId': roomId, 'room': room, 'images': images})
 
 @login_required(login_url='/login/')
 def reservation(request):
@@ -458,4 +458,72 @@ def edit(request):
 def display_reservation(request, reservation_number):
     print(reservation_number)
     reservation = Reservation.objects.get(reservation_number=reservation_number)
-    return render(request, "display_reservation.html", {'reservation': reservation})
+    return render(request, "display_reservation.html", {'reservation': reservation, 'STRIPE_PUBLIC_KEY': settings.STRIPE_PUBLIC_KEY})
+
+def create_checkout(request, reservation_number):
+    YOUR_DOMAIN = "http://127.0.0.1:8000"
+    print(reservation_number)
+    reservation = Reservation.objects.get(reservation_number=reservation_number)
+    room_images = RoomImage.objects.filter(room=reservation.room)
+    image_urls = [image.image.url for image in room_images]
+    data = json.loads(request.body)
+    cancel_url = data.get("url")
+
+    checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': 'usd',
+                        'unit_amount': reservation.room.price_per_night,
+                        'product_data': {
+                            'name': reservation.room.room_name,
+                            # 'images': ['https://i.imgur.com/EHyR2nP.png'],
+                        },
+                    },
+                    'quantity': 1,
+                },
+            ],
+            metadata={
+                "reservation_number": reservation.reservation_number
+            },
+            mode='payment',
+            success_url=YOUR_DOMAIN + '/',
+            cancel_url=YOUR_DOMAIN + cancel_url,
+        )
+    return JsonResponse({
+        'id': checkout_session.id
+    })
+
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+        payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError as e:
+        # Invalid payload
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return HttpResponse(status=400)
+
+    # Handle the checkout.session.completed event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        print(session)
+
+        reservation_number = session["metadata"]["reservation_number"]
+        print(reservation_number)
+
+        reservation = Reservation.objects.get(reservation_number=reservation_number)
+        reservation.delete()
+        print("succesful deletion")
+
+    # Passed signature verification
+    return HttpResponse(status=200)
+        

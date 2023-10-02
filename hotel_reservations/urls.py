@@ -25,10 +25,11 @@ urlpatterns = [
     path('edit-reservation/', edit_reservation, name="edit_reservation"),
     path('edit/', edit, name="edit"),
     path('display-reservation/<reservation_number>', display_reservation, name="display_reservation"),
+    path('checkout/<reservation_number>/', create_checkout, name="checkout"),
+    path('webhooks/stripe/', stripe_webhook, name="stripe_webhook"),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += staticfiles_urlpatterns()
-

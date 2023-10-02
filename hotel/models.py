@@ -85,6 +85,9 @@ class Reservation(models.Model):
     def __str__(self) -> str:
         return self.room.room_name
 
+    def get_display_price(self):
+        return "{0:.2f}".format(self.room.price_per_night / 100)
+
 class Address(models.Model):
     client = models.ForeignKey(Client, related_name='address', on_delete=models.CASCADE)
     street = models.CharField(max_length=150)

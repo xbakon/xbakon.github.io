@@ -51,7 +51,7 @@
                     <td>
                         {% for reservation in reservations %}
                             {% if reservation.room_id == room.id and reservation.check_in == date %}
-                                <div style="background-color: #8e572b; color: white; border-radius: 10px;">{{ reservation.client.client_first_name }}</div>
+                                <div onclick="clickable(`{{reservation.reservation_number}}`)" class="clickable-div" style="background-color: #8e572b; color: white; border-radius: 10px;">{{ reservation.client.client_first_name }}</div>
                             {% endif %}
                         {% endfor %}
                     </td>
@@ -75,9 +75,17 @@
     function backward(start_date, page_number) {
         window.location.href = `/?room_type=${selected_room_type}&start_date=${start_date}&page_number=${page_number}`;
     }
+
+    function clickable(reservation_number) {
+        console.log(reservation_number)
+        window.location.href = '/display-reservation/' + reservation_number;
+    }
 </script>
 
 <style>
+    .clickable-div:hover {
+        cursor: pointer;
+    }
     a:hover {
         color: white;
     }

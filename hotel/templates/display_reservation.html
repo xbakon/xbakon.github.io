@@ -11,6 +11,8 @@
 
 <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
+<script src="https://js.stripe.com/v3/"></script>
 <div class="center">
     <div class="left">
         <h2 style="margin-top: 20px;">Reservation Details</h2>
@@ -21,24 +23,67 @@
             <p>Check In: {{reservation.check_in}}</p>
             <p>Check Out: {{reservation.check_out}}</p>
             <form action="/search/">
-                <button type="submit" class="login-button">VIEW ANOTHER RESERVATION</button>
+                <button type="submit" class="login-button"><b>VIEW ANOTHER RESERVATION</b></button>
             </form>
         </div>
     </div>
     <div style="display: flex; flex-direction: columns; width: 50%;">
         <div class="right">
-            <h2 style="margin-top: 20px; margin-bottom: 20px;">Client Details</h2>
+            <h2 style="margin-top: 20px; margin-bottom: 10px;">Client Details</h2>
             <p>Name: {{reservation.client.client_first_name}} {{reservation.client.client_last_name}}</p>
             <p>Email: {{reservation.client.client_email}}</p>
             <p>Phone: {{reservation.client.client_phno}}</p>
-            <h2 style="margin-bottom: 20px; margin-top: 10px;">Room Details</h2>
+            <h2 style="margin-top: -10px;">Room Details</h2>
             <p>Name: {{reservation.room.room_name}}</p>
             <p>Title: {{reservation.room.room_title}}</p>
             <p>Type: {{reservation.room.room_type}}</p>
-            <p>Price: ${{reservation.room.price_per_night}}</p>
+            <p>Price: ${{reservation.get_display_price}}</p>
+
+            <button id="checkout-button" class="login-button" style="font-size: 20px;"><b>MAKE PAYMENT</b></button>
         </div>
     </div>
 </div>
+
+<script type="text/javascript">
+  var stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
+  var checkoutButton = document.getElementById("checkout-button");
+  const csrftoken = getCookie('csrftoken');
+  dataToSend = { url: "/display-reservation/{{reservation.reservation_number}}"};
+
+  checkoutButton.addEventListener("click", function () {
+    fetch("/checkout/{{reservation.reservation_number}}/", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrftoken,
+      },
+      body: JSON.stringify(dataToSend),
+    })
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (session) {
+        return stripe.redirectToCheckout({ sessionId: session.id });
+      })
+      .then(function (result) {
+        // If redirectToCheckout fails due to a browser or network
+        // error, you should display the localized error message to your
+        // customer using error.message.
+        if (result.error) {
+          alert(result.error.message);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error:", error);
+      });
+  });
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+</script>
 
 <style>
   .login-button {
