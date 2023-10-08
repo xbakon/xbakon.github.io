@@ -1,19 +1,22 @@
 {% extends "base.html" %}
 {% block start %}
 
-
 {% if username %}
 <div style="font-size: x-large; margin-top: 20px; display: flex; flex-direction: column; align-items: center; font-family: monospace; color: white;">
   Your username is: {{username}}
 </div>
 {% endif %}
 
-
 <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 <script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
 <script src="https://js.stripe.com/v3/"></script>
+
 <div class="center">
+    <a href="/search/0" class="back-arrow" style="margin-left: 20px;">
+        <i class="fas fa-arrow-left"></i> View Another Reservation
+    </a>
+
     <div class="left">
         <h2 style="margin-top: 20px;">Reservation Details</h2>
         <div style="font-size: 19px; margin-top: 20px; display: flex; flex-direction: column; align-items: center;">
@@ -22,12 +25,13 @@
             <p>No. of Adults: {{reservation.no_of_adults}}</p>
             <p>Check In: {{reservation.check_in}}</p>
             <p>Check Out: {{reservation.check_out}}</p>
-            <form action="/search/">
-                <button type="submit" class="login-button"><b>VIEW ANOTHER RESERVATION</b></button>
+            <form action="/cancel-reservation/{{reservation.reservation_number}}">
+                <button type="submit" class="login-button"><b>CANCEL RESERVATION</b></button>
             </form>
         </div>
     </div>
-    <div style="display: flex; flex-direction: columns; width: 50%;">
+
+    <div style="display: flex; flex-direction: column; width: 50%;">
         <div class="right">
             <h2 style="margin-top: 20px; margin-bottom: 10px;">Client Details</h2>
             <p>Name: {{reservation.client.client_first_name}} {{reservation.client.client_last_name}}</p>
@@ -44,6 +48,7 @@
     </div>
 </div>
 
+<!-- Your existing script and styles, plus the added style for the back arrow -->
 <script type="text/javascript">
   var stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
   var checkoutButton = document.getElementById("checkout-button");
@@ -103,10 +108,8 @@
     margin-bottom: 15px;
   }
   .center { 
-    position: absolute;
-    top: 52%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: relative;
+    margin: 5% auto;
     padding: 10px;
     background-color: beige;
     height: 530px; 
@@ -142,6 +145,22 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+  }
+  .back-arrow {
+    margin-top: -5px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: rgb(56, 51, 51);
+    font-family: monospace;
+    text-decoration: none;
+    background-color: none;
+    padding: 5px 10px;
+    border-radius: 15px;
+  }
+  .back-arrow:hover {
+    text-decoration: none;
+    color: #8e572b;
   }
 </style>
 

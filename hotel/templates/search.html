@@ -11,12 +11,23 @@
 <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 <div class="center">
-  <form class="center-two" action="/search/" method="post">
+  <form class="center-two" action="/search/0" method="post">
     {% csrf_token %}
     <div class="input-container">
         <i class="fas fa-ticket-alt input-icon" style="color: #8e572b"></i>
+        {% if type == 0 %}
+        <input type="hidden" name="hidden" value="reservation_number">
         <input type="number" placeholder="ENTER RESERVATION NUMBER" class="form-control my-input" required name="reservation_number">
-    </div>
+        {% else %}
+        <input type="hidden" name="hidden" value="last_name">
+        <input placeholder="ENTER LAST NAME" class="form-control my-input" required name="last_name">
+        {% endif %}
+      </div>
+    {% if type == 0 %}
+    <a href="/search/1" class="forgot-password" style="text-decoration: none; color: #8e572b; margin-top: -10px; margin-left: 210px;">{{msg}}</a>
+    {% else %}
+    <a href="/search/0" class="forgot-password" style="text-decoration: none; color: #8e572b; margin-top: -10px; margin-left: 142px;">{{msg}}</a>
+    {% endif %}
     <button type="submit" class="login-button">LOOKUP RESERVATION</button>
   </form>
 </div>

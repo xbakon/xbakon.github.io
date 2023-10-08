@@ -29,13 +29,13 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 def home(request):
     if request.GET.get('end_date'):
         start_date = request.GET.get('end_date')
-        start_date = datetime.strptime(start_date, "%d-%m-%y")
+        start_date = datetime.strptime(start_date, "%m/%d/%y")
         start_date = start_date + timedelta(days=1)
         page_number = int(request.GET.get('page_number'))
         page_number = page_number + 1
     elif request.GET.get('start_date'):
         start_date = request.GET.get('start_date')
-        start_date = datetime.strptime(start_date, "%d-%m-%y")
+        start_date = datetime.strptime(start_date, "%m/%d/%y")
         start_date = start_date - timedelta(days=5)
         page_number = int(request.GET.get('page_number'))
         page_number = page_number - 1
@@ -58,7 +58,7 @@ def home(request):
     str_dates = []
     for i in range(5):
         date = start_date + timedelta(days=i)
-        str_date = date.strftime("%d-%m-%y")
+        str_date = date.strftime("%m/%d/%y")
         str_date = str(str_date)
         str_dates.append(str_date)
         date = date.strftime("%Y-%m-%d")
@@ -368,23 +368,36 @@ def make_resrvation(request):
 
     return redirect('/reservation/')
 
-def search(request):
+def search(request, type):
     if request.method == 'POST':
         data = request.POST
-        reservation_number = data['reservation_number']
-
-        if len(str(reservation_number)) < 8 or len(str(reservation_number)) > 8:
-            return render(request, "search.html", {'message': 'reservation number must have exactly 8 digits'})
-        reservation = Reservation.objects.filter(reservation_number=reservation_number)
-
-        if not reservation.exists():
-            return render(request, "search.html", {'message': 'reservation not found'})
-        reservation = reservation[0]
-
-        return redirect('/display-reservation/' + str(reservation.reservation_number))
-
+        if data['hidden'] == 'reservation_number':
+            reservation_number = data['reservation_number']
+            if len(str(reservation_number)) < 8 or len(str(reservation_number)) > 8:
+                return render(request, "search.html", {'message': 'reservation number must have exactly 8 digits'})
+            reservation = Reservation.objects.filter(reservation_number=reservation_number)
+            if not reservation.exists():
+                return render(request, "search.html", {'message': 'reservation not found',})
+            reservation = reservation[0]
+            return redirect('/display-reservation/' + str(reservation.reservation_number))
+        else:
+            last_name = data['last_name']
+            print(last_name)
+            clients = Client.objects.filter(client_last_name=last_name)
+            if not clients.exists():
+                return render(request, "search.html", {'message': 'client not found', 'msg': 'Search By Reservation Number?', 'type': 1})
+            reservation = Reservation.objects.filter(client=clients[0])
+            if not reservation.exists():
+                return render(request, "search.html", {'message': 'reservation not found', 'msg': 'Search By Reservation Number?', 'type': 1})
+            return redirect('/display-reservation/' + str(reservation[0].reservation_number))
     else:
-        return render(request, "search.html")
+        print(type)
+        type = int(type)
+        if type == 0:
+            msg = 'Search By Last Name?'
+        else:
+            msg = 'Search By Reservation Number?'
+        return render(request, "search.html", {'msg': msg, 'type': type})
 
 @login_required(login_url='/login/')
 def edit_reservation(request):
@@ -454,6 +467,12 @@ def edit(request):
         return render(request, "edit.html", {'message': message})
 
     return render(request, "edit.html")
+
+def cancel_reservation(request, reservation_number):
+    reservation = Reservation.objects.get(reservation_number=reservation_number)
+    reservation.delete()
+    msg = 'Reservation cancelled for Reservation Number: ' + reservation_number
+    return render(request, "search.html", {'message': msg})
 
 def display_reservation(request, reservation_number):
     print(reservation_number)
